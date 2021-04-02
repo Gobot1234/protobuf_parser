@@ -1,12 +1,18 @@
+import shutil
 from typing import Any
 from pathlib import Path
 
 import pybind11
 from pybind11.setup_helpers import Pybind11Extension, build_ext
 
-import subprocess
-
+# make sure that the header files are copied to pybind's include folder before compilation
 INCLUDE = Path(pybind11.__file__).parent / "include"
+LOCATION = INCLUDE / "google"
+GOOGLE = Path().joinpath("protobuf", "src", "google").resolve()
+try:
+    shutil.move(GOOGLE, LOCATION)
+except FileNotFoundError:  # shouldn't happen in normal code however may happen during development
+    pass
 
 
 def build(setup_kwargs: dict[str, Any]) -> None:
