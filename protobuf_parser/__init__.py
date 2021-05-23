@@ -7,9 +7,8 @@ from typing import Sequence, TYPE_CHECKING, AnyStr, Protocol, overload, runtime_
 
 # from ._parser import run as _run, parse as _parse
 from ._parser import parse as _parse
+from ._types import *
 
-if TYPE_CHECKING:
-    from _typeshed import SupportsRead
 
 __all__ = (
     "Error",
@@ -20,13 +19,7 @@ __all__ = (
 )
 
 
-class _SupportsStr(Protocol):
-    def __str__(self) -> str:
-        ...
 
-@runtime_checkable
-class SupportsRead(Protocol):
-    def read(self): ...
 
 
 class Error(Exception):
@@ -48,12 +41,14 @@ class Warning(Error, Warning):
     ...
 
 
-def parse(*files: AnyStr | os.Pathlike[AnyStr] | SupportsRead[AnyStr]) -> tuple[bytes, Sequence[Error]]:
+def parse(
+    *files: AnyStr | os.Pathlike[AnyStr] | SupportsRead[AnyStr] | FileDescriptorLike
+    ) -> tuple[bytes, Sequence[Error]]:
     """Parse files using protoc.
 
     Parameters
     ----------
-    files: `str | bytes | os.Pathlike | SupportsRead`
+    files: `str | bytes | os.Pathlike | SupportsRead | FileDescriptorLike`
         A `str`, `bytes` pathlike or an object that has a read method.
 
     Returns
@@ -72,6 +67,7 @@ def parse(*files: AnyStr | os.Pathlike[AnyStr] | SupportsRead[AnyStr]) -> tuple[
             elif isinstance(file, bytes):
                 del files[idx]
                 files[idx] = BytesIO(file)
+            elif isinstance(file, )
             else:
                 raise TypeError(f"parse doesn't support passing {file.__class__} as a file argument")
     
