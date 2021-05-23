@@ -9,10 +9,10 @@ from pybind11.setup_helpers import Pybind11Extension, build_ext
 
 # make sure that the header files are copied to pybind's include folder before compilation
 INCLUDE = Path(pybind11.__file__).parent / "include"
-GOOGLE = Path().joinpath("protobuf", "src", "google").resolve()
+GOOGLE = Path("protobuf", "src", "google").resolve()
 try:
     shutil.move(GOOGLE, INCLUDE, copy_function=shutil.copytree)
-except FileNotFoundError:  # shouldn't happen in normal code however may happen during development
+except (FileNotFoundError, shutil.Error):  # shouldn't happen in normal code however may happen during development
     pass
 
 
