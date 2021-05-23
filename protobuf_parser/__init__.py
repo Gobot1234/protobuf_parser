@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
-from typing import TYPE_CHECKING, AnyStr, Protocol
+from io import BytesIO, StringIO
+from typing import Sequence, TYPE_CHECKING, AnyStr, Protocol, overload, runtime_checkable
 
-from _protobuf_parser import run as _run, parse as _parse
+# from ._parser import run as _run, parse as _parse
+from ._parser import parse as _parse
 
 if TYPE_CHECKING:
     from _typeshed import SupportsRead
@@ -21,12 +24,20 @@ class _SupportsStr(Protocol):
     def __str__(self) -> str:
         ...
 
+@runtime_checkable
+class SupportsRead(Protocol):
+    def read(self): ...
+
 
 class Error(Exception):
     file: Path
     line: int
     column: int
     message: str
+
+    @overload
+    def __new__(cls) -> Error:
+        ...
 
 
 class SyntaxError(Error):
@@ -37,19 +48,34 @@ class Warning(Error, Warning):
     ...
 
 
-def parse(*files: SupportsRead[AnyStr]) -> tuple[bytes, list[Error]]:
+def parse(*files: AnyStr | os.Pathlike[AnyStr] | SupportsRead[AnyStr]) -> tuple[bytes, Sequence[Error]]:
     """Parse files using protoc.
 
     Parameters
     ----------
-    files: `SupportsRead`
-        An object that has a read method.
+    files: `str | bytes | os.Pathlike | SupportsRead`
+        A `str`, `bytes` pathlike or an object that has a read method.
 
     Returns
     -------
     tuple[`bytes`, list[`Error`]]
         A tuple of the FileDescriptor's bytes and any errors that were encountered when parsing.
     """
+    files = list(files)
+    for idx, file in enumerate(files):
+        if not isinstance(file, SupportsRead):
+            if isinstance(file, os.PathLike):
+                file = os.fspath(file)
+            if isinstance(file, str):
+                del files[idx]
+                files[idx] = StringIO(file)
+            elif isinstance(file, bytes):
+                del files[idx]
+                files[idx] = BytesIO(file)
+            else:
+                raise TypeError(f"parse doesn't support passing {file.__class__} as a file argument")
+    
+    files: list[SupportsRead]
     output, errors = _parse(*files)
     return output, [Error(error) for error in errors]
 

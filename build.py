@@ -18,7 +18,7 @@ except (FileNotFoundError, shutil.Error):  # shouldn't happen in normal code how
 
 def build(setup_kwargs: dict[str, Any]) -> None:
     ext_modules = [
-        Pybind11Extension("_protobuf_parser", ["protobuf_parser/protoc.cpp"]),
+        Pybind11Extension("protobuf_parser._parser", ["protobuf_parser/_parser.cpp"]),
     ]
     setup_kwargs.update(
         {

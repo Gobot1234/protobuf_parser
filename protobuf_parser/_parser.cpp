@@ -1,9 +1,10 @@
-// Python version of this module of this is called _protobuf_parser
-
-#include <pybind11/pybind11.h>
-#include <google/protobuf/compiler/command_line_interface.h>
-#include <vector>
 #include <tuple>
+#include <vector>
+
+#include <google/protobuf/compiler/command_line_interface.h>
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+
 
 namespace py = pybind11;
 
@@ -12,24 +13,21 @@ struct SyntaxError : Error {};
 struct Warning : Error {};
 
 
-std::tuple<const char, std::vector<Error>> parse(py::args files) {
-    vector<Error> vect;
-
-    std::tuple<const char, std::vector<Error>> ret = ('d', vect);
-
-    return ret;
-
+std::tuple<py::bytes, std::vector<Error>> parse(py::args files) {
+    std::vector<Error> vect;
+    std::string str;
+    return std::make_tuple(py::bytes(str), vect);
 }
 
 //std::vector<Error> run(py::args args, py::kwargs kwargs) {
 //    std::vector
 //}
 
-PYBIND11_MODULE(_protobuf_parser, m) {
+PYBIND11_MODULE(_parser, m) {
     m.doc() = "Raw bindings for protoc";
 
     py::class_<Error>(m, "Error");
     py::class_<SyntaxError>(m, "SyntaxError");
     py::class_<Warning>(m, "Warning");
-    py::def('parse', &parser, "");
+    m.def("parse", &parse, "");
 }
