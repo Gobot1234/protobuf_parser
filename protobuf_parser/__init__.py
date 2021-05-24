@@ -61,8 +61,9 @@ def parse(
         print(files)
         if not isinstance(file, SupportsRead):
             if isinstance(file, os.PathLike):
-                file = open(files)
-            if isinstance(file, str):
+                del files[idx]
+                files.insert(idx, open(file))
+            elif isinstance(file, str):
                 del files[idx]
                 files.insert(idx, StringIO(file))
             elif isinstance(file, bytes):
