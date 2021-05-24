@@ -9,6 +9,7 @@ exclude = ["protobuf_parser/protobuf/**/*"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
+typing-extensions = "^3.10.0"
 
 [tool.poetry.dev-dependencies]
 pybind11 = "^2.6.2"

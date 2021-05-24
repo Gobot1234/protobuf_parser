@@ -43,7 +43,7 @@ class Warning(Error, Warning):
 
 def parse(
     *files: AnyStr | os.Pathlike[AnyStr] | SupportsRead[AnyStr] | FileDescriptorLike
-    ) -> tuple[bytes, Sequence[Error]]:
+) -> tuple[bytes, Sequence[Error]]:
     """Parse files using protoc.
 
     Parameters
@@ -56,27 +56,29 @@ def parse(
     tuple[`bytes`, list[`Error`]]
         A tuple of the FileDescriptor's bytes and any errors that were encountered when parsing.
     """
-    files = list(files)
+    files: list = list(files)
     for idx, file in enumerate(files):
+        print(files)
         if not isinstance(file, SupportsRead):
             if isinstance(file, os.PathLike):
-                file = os.fspath(file)
+                file = open(files)
             if isinstance(file, str):
                 del files[idx]
-                files[idx] = StringIO(file)
+                files.insert(idx, StringIO(file))
             elif isinstance(file, bytes):
                 del files[idx]
-                files[idx] = BytesIO(file)
-            elif isinstance(file, )
+                files.insert(idx, BytesIO(file))
+            elif isinstance(file, FileDescriptorLike):
+                del files[idx]
+                files.insert(idx, open_fileno(file))
             else:
                 raise TypeError(f"parse doesn't support passing {file.__class__} as a file argument")
     
-    files: list[SupportsRead]
     output, errors = _parse(*files)
     return output, [Error(error) for error in errors]
 
 
-def run(*args: _SupportsStr, **kwargs: _SupportsStr) -> list[Error]:
+def run(*args: SupportsStr, **kwargs: SupportsStr) -> list[Error]:
     """Manually invoke protoc.
 
     Parameters
