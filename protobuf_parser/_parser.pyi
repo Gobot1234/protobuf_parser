@@ -1,5 +1,6 @@
 from collections.abc import Sequence
-from . import SupportsRead
+
+from ._types import SupportsRead
 
 
 class Error:

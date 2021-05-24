@@ -1,6 +1,7 @@
 from io import TextIOWrapper
-from typing import Protocol, TYPE_CHECKING, runtime_checkable
+from typing import AnyStr, Protocol, TYPE_CHECKING, runtime_checkable
 from typing_extensions import TypeAlias
+from os import PathLike
 
 
 class SupportsStr(Protocol):
@@ -8,8 +9,8 @@ class SupportsStr(Protocol):
         ...
 
 @runtime_checkable
-class SupportsRead(Protocol):
-    def read(self): ...
+class SupportsRead(Protocol[AnyStr]):
+    def read(self) -> AnyStr: ...
 
 @runtime_checkable
 class HasFileno(Protocol):
@@ -21,6 +22,8 @@ if TYPE_CHECKING:
     FileDescriptorLike: TypeAlias = "FileDescriptor | HasFileno"
 else:
     FileDescriptorLike = (FileDescriptor, HasFileno)
+
+AnyPath: TypeAlias = "str | bytes | PathLike[str] | PathLike[bytes]"
 
 def open_fileno(x: FileDescriptorLike) -> TextIOWrapper:
     if isinstance(x, FileDescriptor):

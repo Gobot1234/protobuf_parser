@@ -2,21 +2,51 @@
 #include <vector>
 
 #include <google/protobuf/compiler/command_line_interface.h>
+#include <google/protobuf/compiler/importer.h>
+#include <google/protobuf/descriptor.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
 
 namespace py = pybind11;
 
-struct Error {};
-struct SyntaxError : Error {};
-struct Warning : Error {};
 
+class Error {};
+class SyntaxError : Error {};
+class Warning : Error {};
+
+// class ErrorReturner : MultiFileErrorCollector {
+//     ErrorPrinter(ErrorFormat format, DiskSourceTree* tree = NULL): 
+//         format_(format),
+//         tree_(tree),
+//         found_errors_(false),
+//         found_warnings_(false),
+//         std::vector<Error> errors;
+//         errors_(errors),  // warnings also live here
+//         files_(py::object),
+//         {},
+// };
+
+// class FileTree : SourceTree {
+//     io::ZeroCopyInputStream* Open(const std::string& filename) {
+//         return
+//     }
+// };
 
 std::tuple<py::bytes, std::vector<Error>> parse(py::args files) {
-    std::vector<Error> vect;
-    std::string str;
-    return std::make_tuple(py::bytes(str), vect);
+    std::vector<Error> errors;
+    std::string result;
+    // std::vector<const FileDescriptor> parsed_files;
+    // result.append("hello");
+    // py::print(files);
+
+    // SourceTree source_tree;
+
+    // g = (new DescriptorBuilder()).BuildFile();
+    // *Importer importer = new Importer();
+    // importer.Import(file);
+
+    return std::make_tuple(py::bytes(result), errors);
 }
 
 //std::vector<Error> run(py::args args, py::kwargs kwargs) {

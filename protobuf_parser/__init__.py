@@ -6,7 +6,7 @@ from io import BytesIO, StringIO
 from typing import Sequence, TYPE_CHECKING, AnyStr, Protocol, overload, runtime_checkable
 
 # from ._parser import run as _run, parse as _parse
-from ._parser import parse as _parse
+from ._parser import parse as _parse, Error as _Error
 from ._types import *
 
 
@@ -26,7 +26,16 @@ class Error(Exception):
     message: str
 
     @overload
-    def __new__(cls) -> Error:
+    def __new__(cls, c_error) -> Error:
+        return super().__new__(
+            {
+                _Error: Error,
+                _SyntaxError: SyntaxError,
+                _Warning: Warning,
+            }[c_error]
+        )
+
+    def __init__(self, c_error) -> None:
         ...
 
 
@@ -38,9 +47,7 @@ class Warning(Error, Warning):
     ...
 
 
-def parse(
-    *files: AnyStr | os.Pathlike[AnyStr] | SupportsRead[AnyStr] | FileDescriptorLike
-) -> tuple[bytes, Sequence[Error]]:
+def parse(*files: AnyPath | SupportsRead[AnyStr] | FileDescriptorLike) -> tuple[bytes, Sequence[Error]]:
     """Parse files using protoc.
 
     Parameters
@@ -58,10 +65,8 @@ def parse(
         if not isinstance(file, SupportsRead):
             if isinstance(file, os.PathLike):
                 files[idx] = open(file)
-            elif isinstance(file, str):
-                files[idx] = StringIO(file)
-            elif isinstance(file, bytes):
-                files[idx] = BytesIO(file)
+            elif isinstance(file, (str, bytes)):
+                files[idx] = open(file)
             elif isinstance(file, FileDescriptorLike):
                 files[idx] = open_fileno(file)
             else:
