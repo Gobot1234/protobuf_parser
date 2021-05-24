@@ -19,9 +19,6 @@ __all__ = (
 )
 
 
-
-
-
 class Error(Exception):
     file: Path
     line: int
@@ -56,22 +53,17 @@ def parse(
     tuple[`bytes`, list[`Error`]]
         A tuple of the FileDescriptor's bytes and any errors that were encountered when parsing.
     """
-    files: list = list(files)
+    files = list(files)
     for idx, file in enumerate(files):
-        print(files)
         if not isinstance(file, SupportsRead):
             if isinstance(file, os.PathLike):
-                del files[idx]
-                files.insert(idx, open(file))
+                files[idx] = open(file)
             elif isinstance(file, str):
-                del files[idx]
-                files.insert(idx, StringIO(file))
+                files[idx] = StringIO(file)
             elif isinstance(file, bytes):
-                del files[idx]
-                files.insert(idx, BytesIO(file))
+                files[idx] = BytesIO(file)
             elif isinstance(file, FileDescriptorLike):
-                del files[idx]
-                files.insert(idx, open_fileno(file))
+                files[idx] = open_fileno(file)
             else:
                 raise TypeError(f"parse doesn't support passing {file.__class__} as a file argument")
     
