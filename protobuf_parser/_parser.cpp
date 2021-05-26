@@ -28,10 +28,18 @@ class Warning : Error {};
 // };
 
 // class FileTree : SourceTree {
+//     public: 
+//         map<std::string, py::object> files;
 //     io::ZeroCopyInputStream* Open(const std::string& filename) {
 //         return
 //     }
 // };
+
+
+// class CoolDescriptorPool : DescriptorPool {
+
+// }
+
 
 std::tuple<py::bytes, std::vector<Error>> parse(py::args files) {
     std::vector<Error> errors;
@@ -45,6 +53,10 @@ std::tuple<py::bytes, std::vector<Error>> parse(py::args files) {
     // g = (new DescriptorBuilder()).BuildFile();
     // *Importer importer = new Importer();
     // importer.Import(file);
+
+    // std::vector<std::string> *new_files = files.cast();
+    // for (auto i : new_files)
+    //     std::cout << i << ' ';
 
     return std::make_tuple(py::bytes(result), errors);
 }

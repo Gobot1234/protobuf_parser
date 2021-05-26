@@ -26,7 +26,18 @@ class Error(Exception):
     message: str
 
     @overload
-    def __new__(cls, c_error) -> Error:
+    def __new__(cls, c_error: _Error) -> Error:
+        ...
+
+    @overload
+    def __new__(cls, c_error: _SyntaxError) -> SyntaxError:
+        ...
+
+    @overload
+    def __new__(cls, c_error: _Warning) -> Warning:
+        ...
+
+    def __new__(cls, c_error: _Error) -> Error:
         return super().__new__(
             {
                 _Error: Error,
@@ -36,7 +47,10 @@ class Error(Exception):
         )
 
     def __init__(self, c_error) -> None:
-        ...
+        self.file = Path(c_error.file)
+        self.line = c_error.line
+        self.column = c_error.column
+        self.args = c_error.column
 
 
 class SyntaxError(Error):
