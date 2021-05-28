@@ -2,11 +2,10 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from io import BytesIO, StringIO
-from typing import Sequence, TYPE_CHECKING, AnyStr, Protocol, overload, runtime_checkable
+from typing import Sequence, AnyStr, overload
 
 # from ._parser import run as _run, parse as _parse
-from ._parser import parse as _parse, Error as _Error
+from ._parser import parse as _parse, Error as _Error, SyntaxError as _SyntaxError, Warning as _Warning
 from ._types import *
 
 
@@ -46,7 +45,7 @@ class Error(Exception):
             }[c_error]
         )
 
-    def __init__(self, c_error) -> None:
+    def __init__(self, c_error: _Error) -> None:
         self.file = Path(c_error.file)
         self.line = c_error.line
         self.column = c_error.column
