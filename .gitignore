@@ -19,7 +19,7 @@ wheels/
 *.egg
 
 .idea
-/protobuf/
+.DS_Store
 
 .pytest_cache/
 
@@ -28,5 +28,6 @@ docs/_build/
 
 # mypy
 .mypy_cache/
+
 include
 .vscode

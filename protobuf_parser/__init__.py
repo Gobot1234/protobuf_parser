@@ -7,6 +7,7 @@ from typing import Sequence, AnyStr, overload
 # from ._parser import run as _run, parse as _parse
 from ._parser import parse as _parse, Error as _Error, SyntaxError as _SyntaxError, Warning as _Warning
 from ._types import *
+from ._version import __version__
 
 
 __all__ = (
@@ -73,19 +74,21 @@ def parse(*files: AnyPath | SupportsRead[AnyStr] | FileDescriptorLike) -> tuple[
     tuple[`bytes`, list[`Error`]]
         A tuple of the FileDescriptor's bytes and any errors that were encountered when parsing.
     """
-    files = list(files)
-    for idx, file in enumerate(files):
+    new_files = {}
+    for file in files:
         if not isinstance(file, SupportsRead):
             if isinstance(file, os.PathLike):
-                files[idx] = open(file)
+                file = open(file)
             elif isinstance(file, (str, bytes)):
-                files[idx] = open(file)
+                file = open(file)
             elif isinstance(file, FileDescriptorLike):
-                files[idx] = open_fileno(file)
+                file = open_fileno(file)
             else:
                 raise TypeError(f"parse doesn't support passing {file.__class__} as a file argument")
-    
-    output, errors = _parse(*files)
+            
+        new_files[file.name] = file
+
+    output, errors = _parse(new_files)
     return output, [Error(error) for error in errors]
 
 

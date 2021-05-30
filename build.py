@@ -1,11 +1,21 @@
 from __future__ import annotations
 
 import shutil
-from typing import Any
 from pathlib import Path
+from distutils.dist import Distribution
+from typing import Any, Dict, cast
 
 import pybind11
 from pybind11.setup_helpers import Pybind11Extension, build_ext
+from tomlkit import parse
+
+
+PROTOBUF_PARSER = Path("protobuf_parser").resolve()
+
+PYPROJECT = cast(Dict[str, Any], parse(Path("pyproject.toml").read_text()))
+VERSION: str = PYPROJECT["tool"]["poetry"]["version"]
+
+PROTOBUF_PARSER.joinpath("_version.py").write_text(f'__version__ = "{VERSION}"\n')
 
 # make sure that the header files are copied to pybind's include folder before compilation
 INCLUDE = Path(pybind11.__file__).parent / "include"
@@ -16,14 +26,11 @@ except (FileNotFoundError, shutil.Error):  # shouldn't happen in normal code how
     pass
 
 
-def build(setup_kwargs: dict[str, Any]) -> None:
-    ext_modules = [
-        Pybind11Extension("protobuf_parser._parser", ["protobuf_parser/_parser.cpp"]),
-    ]
-    setup_kwargs.update(
-        {
-            "ext_modules": ext_modules,
-            "cmdclass": {"build_ext": build_ext},
-            "zip_safe": False,
-        }
-    )
+command = build_ext(Distribution())
+command.finalize_options()
+command.build_lib = str(PROTOBUF_PARSER.parent)
+command.extensions = [
+    Pybind11Extension("protobuf_parser._parser", ["protobuf_parser/_parser.cpp"]),
+]
+command.run()
+shutil.rmtree("build", ignore_errors=True)

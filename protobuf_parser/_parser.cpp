@@ -1,5 +1,6 @@
 #include <tuple>
 #include <vector>
+#include <unordered_map>
 
 #include <google/protobuf/compiler/command_line_interface.h>
 #include <google/protobuf/compiler/importer.h>
@@ -11,37 +12,75 @@
 namespace py = pybind11;
 
 
-class Error {};
-class SyntaxError : Error {};
-class Warning : Error {};
+class Error {
+    public:
+        std::string filename;
+        int line;
+        int column;
+        std::string message;
 
-// class ErrorReturner : MultiFileErrorCollector {
-//     ErrorPrinter(ErrorFormat format, DiskSourceTree* tree = NULL): 
-//         format_(format),
-//         tree_(tree),
-//         found_errors_(false),
-//         found_warnings_(false),
-//         std::vector<Error> errors;
-//         errors_(errors),  // warnings also live here
-//         files_(py::object),
-//         {},
-// };
-
-// class FileTree : SourceTree {
-//     public: 
-//         map<std::string, py::object> files;
-//     io::ZeroCopyInputStream* Open(const std::string& filename) {
-//         return
-//     }
-// };
+    Error(
+        std::string filename_,
+        int line_,
+        int column_,
+        std::string message_,
+    ) {
+        filename = filename_;
+        line = line_;
+        column = column_;
+        message = message_;
+    }
+};
 
 
-// class CoolDescriptorPool : DescriptorPool {
+class ErrorCollector : MultiFileErrorCollector {
+    std::vector<Error> errors;
 
-// }
+    ErrorReturner() {
+        errors = std::vector<Error>();
+    }
+
+    void AddError(
+        const std::string &filename,
+        int line,
+        int column,
+        const std::string &message,
+    ) {
+        Error error = Error(filename, line, column, message);
+        errors.push_back(error);
+    }
+
+    void AddWarning(
+        const std::string &filename,
+        int line,
+        int column,
+        const std::string &message,
+    ) {
+        Error error = Error(filename, line, column, message);
+        errors.push_back(error);
+    }
+};
+
+typedef FileMapping = unordered_map<std::string, py::object>;
+
+class FileTree : SourceTree {
+    public:
+        FileMapping files;
+
+    FileTree(FileMapping files_) {
+        files = files_;
+    }
+
+    ArrayInputStream Open(const std::string &filename) {
+        py::object file = files[filename];
+        auto bytes = py::cast<std::string>(file.attr("read")());
+        auto size = bytes.length();
+        return ArrayInputStream(&bytes, size, 8192);
+    }
+};
 
 
-std::tuple<py::bytes, std::vector<Error>> parse(py::args files) {
+auto parse(FileMapping files) {
     std::vector<Error> errors;
     std::string result;
     // std::vector<const FileDescriptor> parsed_files;
@@ -51,14 +90,10 @@ std::tuple<py::bytes, std::vector<Error>> parse(py::args files) {
     // SourceTree source_tree;
 
     // g = (new DescriptorBuilder()).BuildFile();
-    // *Importer importer = new Importer();
-    // importer.Import(file);
+    Importer importer = new Importer(FileTree(files), ErrorCollector());
+    // auto descriptor = importer.Import(file);
 
-    // std::vector<std::string> *new_files = files.cast();
-    // for (auto i : new_files)
-    //     std::cout << i << ' ';
-
-    return std::make_tuple(py::bytes(result), errors);
+    return py::make_tuple(py::bytes(result), errors);
 }
 
 //std::vector<Error> run(py::args args, py::kwargs kwargs) {
