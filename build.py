@@ -2,17 +2,17 @@ from __future__ import annotations
 
 import shutil
 from pathlib import Path
-from distutils.dist import Distribution
-from typing import Any, Dict, cast
 
+from setuptools.monkey import patch_all
+patch_all()
+from setuptools.dist import Distribution
 import pybind11
 from pybind11.setup_helpers import Pybind11Extension, build_ext
-from tomlkit import parse
-
+import tomli
 
 PROTOBUF_PARSER = Path("protobuf_parser").resolve()
 
-PYPROJECT = cast(Dict[str, Any], parse(Path("pyproject.toml").read_text()))
+PYPROJECT = tomli.load(open(Path("pyproject.toml")))
 VERSION: str = PYPROJECT["tool"]["poetry"]["version"]
 
 PROTOBUF_PARSER.joinpath("_version.py").write_text(f'__version__ = "{VERSION}"\n')
@@ -29,8 +29,13 @@ except (FileNotFoundError, shutil.Error):  # shouldn't happen in normal code how
 command = build_ext(Distribution())
 command.finalize_options()
 command.build_lib = str(PROTOBUF_PARSER.parent)
-command.extensions = [
-    Pybind11Extension("protobuf_parser._parser", ["protobuf_parser/_parser.cpp"]),
-]
+parser = Pybind11Extension(
+    "protobuf_parser._parser",
+    ["protobuf_parser/_parser.cpp"],
+    libraries=["protobuf"],
+    #library_dirs=["/Users/James/PycharmProjects/protobuf_parser/protobuf/src/.libs"]
+)
+parser._needs_stub = False
+command.extensions = [parser]
 command.run()
-shutil.rmtree("build", ignore_errors=True)
+# shutil.rmtree("build", ignore_errors=True)

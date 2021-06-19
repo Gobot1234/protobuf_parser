@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+import inspect
+import io
 import os
+import sys
 from pathlib import Path
 from typing import Sequence, AnyStr, overload
 
-# from ._parser import run as _run, parse as _parse
-from ._parser import parse as _parse, Error as _Error, SyntaxError as _SyntaxError, Warning as _Warning
+from ._parser import Error as _Error
+from ._parser import parse as _parse
+# from ._parser import run as _run
 from ._types import *
 from ._version import __version__
 
@@ -20,37 +24,37 @@ __all__ = (
 
 
 class Error(Exception):
-    file: Path
-    line: int
-    column: int
-    message: str
-
-    @overload
-    def __new__(cls, c_error: _Error) -> Error:
-        ...
-
-    @overload
-    def __new__(cls, c_error: _SyntaxError) -> SyntaxError:
-        ...
-
-    @overload
-    def __new__(cls, c_error: _Warning) -> Warning:
-        ...
-
-    def __new__(cls, c_error: _Error) -> Error:
-        return super().__new__(
-            {
-                _Error: Error,
-                _SyntaxError: SyntaxError,
-                _Warning: Warning,
-            }[c_error]
-        )
+    # @overload
+    # def __new__(cls, c_error: _Error) -> Error:
+    #     ...
+    #
+    # @overload
+    # def __new__(cls, c_error: _SyntaxError) -> SyntaxError:
+    #     ...
+    #
+    # @overload
+    # def __new__(cls, c_error: _Warning) -> Warning:
+    #     ...
+    #
+    # def __new__(cls, c_error: _Error) -> Error:
+    #     print(c_error.message)
+    #     return super().__new__(
+    #         {
+    #             _Error: Error,
+    #             _SyntaxError: SyntaxError,
+    #             _Warning: Warning,
+    #         }[c_error]
+    #     )
 
     def __init__(self, c_error: _Error) -> None:
-        self.file = Path(c_error.file)
+        self.file = Path(c_error.filename)
         self.line = c_error.line
         self.column = c_error.column
-        self.args = c_error.column
+        self.message = c_error.message
+        super().__init__(c_error.message)
+
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__} {self.file}:{self.line}:{self.column}: {self.message!r}>"
 
 
 class SyntaxError(Error):
@@ -61,12 +65,12 @@ class Warning(Error, Warning):
     ...
 
 
-def parse(*files: AnyPath | SupportsRead[AnyStr] | FileDescriptorLike) -> tuple[bytes, Sequence[Error]]:
+def parse(*files: AnyPath | SupportsRead[AnyStr] | FileDescriptorLike) -> tuple[list[bytes], Sequence[Error]]:
     """Parse files using protoc.
 
     Parameters
     ----------
-    files: `str | bytes | os.Pathlike | SupportsRead | FileDescriptorLike`
+    files
         A `str`, `bytes` pathlike or an object that has a read method.
 
     Returns
@@ -74,21 +78,18 @@ def parse(*files: AnyPath | SupportsRead[AnyStr] | FileDescriptorLike) -> tuple[
     tuple[`bytes`, list[`Error`]]
         A tuple of the FileDescriptor's bytes and any errors that were encountered when parsing.
     """
-    new_files = {}
-    for file in files:
+    files = list(files)
+    for idx, file in enumerate(files):
         if not isinstance(file, SupportsRead):
-            if isinstance(file, os.PathLike):
-                file = open(file)
-            elif isinstance(file, (str, bytes)):
-                file = open(file)
+            if isinstance(file, (os.PathLike, str, bytes)):
+                files[idx] = open(file)
             elif isinstance(file, FileDescriptorLike):
-                file = open_fileno(file)
+                files[idx] = open_fileno(file)
             else:
                 raise TypeError(f"parse doesn't support passing {file.__class__} as a file argument")
-            
-        new_files[file.name] = file
 
-    output, errors = _parse(new_files)
+    output, errors = _parse(files)
+    print(output, errors)
     return output, [Error(error) for error in errors]
 
 
@@ -104,11 +105,11 @@ def run(*args: SupportsStr, **kwargs: SupportsStr) -> list[Error]:
 
     Example
     -------
-    .. code-block:: python
-
-        invoke_protoc("this", "that", I="hello")
-        # would be equivalent to
-        # protoc -I=hello this that
+    ```py
+    run("this", "that", I="hello")
+    # would be equivalent to
+    # protoc -I=hello this that
+    ```
 
     Returns
     -------
