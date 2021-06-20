@@ -1,11 +1,8 @@
 from __future__ import annotations
 
-import inspect
-import io
 import os
-import sys
 from pathlib import Path
-from typing import Sequence, AnyStr, overload
+from typing import Sequence
 
 from ._parser import Error as _Error
 from ._parser import parse as _parse
@@ -65,13 +62,13 @@ class Warning(Error, Warning):
     ...
 
 
-def parse(*files: AnyPath | SupportsRead[AnyStr] | FileDescriptorLike) -> tuple[list[bytes], Sequence[Error]]:
+def parse(*files: AnyPath | SupportsParse | FileDescriptorLike) -> tuple[list[bytes], Sequence[Error]]:
     """Parse files using protoc.
 
     Parameters
     ----------
     files
-        A `str`, `bytes` pathlike or an object that has a read method.
+        Something that can be `open`ed or has a name attribute and read method.
 
     Returns
     -------
@@ -80,16 +77,15 @@ def parse(*files: AnyPath | SupportsRead[AnyStr] | FileDescriptorLike) -> tuple[
     """
     files = list(files)
     for idx, file in enumerate(files):
-        if not isinstance(file, SupportsRead):
+        if not isinstance(file, SupportsParse):
             if isinstance(file, (os.PathLike, str, bytes)):
-                files[idx] = open(file)
+                files[idx] = open(file, "r", encoding="utf-8")
             elif isinstance(file, FileDescriptorLike):
                 files[idx] = open_fileno(file)
             else:
                 raise TypeError(f"parse doesn't support passing {file.__class__} as a file argument")
 
     output, errors = _parse(files)
-    print(output, errors)
     return output, [Error(error) for error in errors]
 
 

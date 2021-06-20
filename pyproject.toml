@@ -16,6 +16,7 @@ tomli = "*"
 
 [tool.poetry.dev-dependencies]
 pybind11 = "^2.6.2"
+betterproto = {git = "https://github.com/danielgtaylor/python-betterproto.git"}
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "pybind11>=2.6.2", "tomli", "setuptools"]

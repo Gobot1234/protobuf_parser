@@ -1,20 +1,19 @@
 from __future__ import annotations
 
-from enum import IntEnum
 from io import TextIOWrapper
 from os import PathLike
-from typing import AnyStr, Protocol, TYPE_CHECKING, runtime_checkable
+from typing import Any, Protocol, TYPE_CHECKING, runtime_checkable
 
 from typing_extensions import TypeAlias
 
 
-class SupportsStr(Protocol):
+class SupportsStr(Protocol):  # technically every this could just be Any, but it looks much nicer in signatures
     def __str__(self) -> str:
         ...
 
 
 @runtime_checkable
-class SupportsRead(Protocol):
+class SupportsParse(Protocol):
     name: str | bytes
     def read(self) -> str | bytes: ...
 
@@ -36,12 +35,12 @@ AnyPath: TypeAlias = "str | bytes | PathLike[str] | PathLike[bytes]"
 
 def open_fileno(x: FileDescriptorLike) -> TextIOWrapper:
     if isinstance(x, FileDescriptor):
-        return open(x)
+        return open(x, encoding="ascii")
     elif isinstance(x, HasFileno):
         x = x.fileno()
         if not isinstance(x, FileDescriptor):
             raise TypeError("object.fileno(): returned a non-integer")
-        return open(x)
+        return open(x, encoding="ascii")
 
     raise TypeError("object passed is not a file descriptor")
 

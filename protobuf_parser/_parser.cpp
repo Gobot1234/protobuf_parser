@@ -1,4 +1,6 @@
+// cppimport
 #include <tuple>
+#include <utility>
 #include <vector>
 
 #include <google/protobuf/compiler/command_line_interface.h>
@@ -29,81 +31,76 @@ class Error {
 };
 
 
-class NullErrorCollector : public io::ErrorCollector {  // for actual parsing
-    void AddError(int line, int column, const std::string &message) override {}
-    void AddWarning(int line, int column, const std::string &message) override {}
-};
-
-
-class ErrorCollector : public compiler::MultiFileErrorCollector {  // this one actually does stuff
+class ErrorCollector : public google::protobuf::DescriptorPool::ErrorCollector, public io::ErrorCollector {  // this one actually does stuff
     public:
         std::vector<Error> errors;
+        std::string current_filename;
 
-        void AddError(const std::string &filename, int line, int column, const std::string &message) override {
-            errors.emplace_back(filename, line, column, message);
+        // parsing errors
+        void AddError(int line, int column, const std::string &message) override {
+            errors.emplace_back(current_filename, line + 1, column + 1, message);
+        }
+        void AddWarning(int line, int column, const std::string &message) override {
+            errors.emplace_back(current_filename, line + 1, column + 1, message);
         }
 
-        void AddWarning(const std::string &filename, int line, int column, const std::string &message) override {
-            errors.emplace_back(filename, line, column, message);
+        // conversion errors
+        void AddError(
+            const std::string& filename,
+            const std::string& element_name,
+            const google::protobuf::Message* descriptor,
+            ErrorLocation location,
+            const std::string& message
+        ) override {
+            errors.emplace_back(filename, -1, -1, message);
+        }
+
+        void AddWarning(
+            const std::string& filename,
+            const std::string& element_name,
+            const google::protobuf::Message* descriptor,
+            ErrorLocation location,
+            const std::string& message
+        ) override {
+            errors.emplace_back(filename, -1, -1, message);
         }
 
         ErrorCollector() {
             errors = std::vector<Error>();
-        }
-};
-
-
-class SourceTree : public compiler::SourceTree {
-    public:
-        py::list files;
-
-        io::ArrayInputStream *Open(const std::string &filename) override {
-            for (auto file : files)  // would be nice to use a dict instead of a linear search, but for now this is fine
-                if (py::cast<std::string>(file.attr("name")) == filename) {
-                    auto bytes = py::cast<std::string>(file.attr("read")());
-                    return new io::ArrayInputStream(&bytes, bytes.length());
-                }
-        }
-
-        explicit SourceTree(const py::list &files_) {
-            files = files_;
+            current_filename = std::string();
         }
 };
 
 
 auto parse(const py::list &files) {
-    std::vector<google::protobuf::FileDescriptorProto *> proto_files;
+    std::vector<google::protobuf::FileDescriptorProto> proto_files;
 
-    // currently we have to parse twice, this isn't great, but is currently the best thing I've worked out
     ErrorCollector error_collector;
-    SourceTree tree(files);
-    compiler::Importer importer(&tree, &error_collector);
+    compiler::Parser parser;
+    google::protobuf::DescriptorPool pool;
 
     for (auto file : files) {
-        importer.Import(py::cast<std::string>(file.attr("name")));
+        google::protobuf::FileDescriptorProto proto_file;
+
+        auto bytes = file.attr("read")().cast<std::string>();
+        error_collector.current_filename = file.attr("name").cast<std::string>();
+        io::ArrayInputStream input(&bytes, bytes.size());
+        std::cout << "got some file\n" << bytes << "\n";
+
+        io::Tokenizer tokenizer(&input, &error_collector);
+        parser.Parse(&tokenizer, &proto_file);
+        pool.BuildFileCollectingErrors(proto_file, &error_collector);
+        proto_files.push_back(proto_file);
     }
 
     if (!error_collector.errors.empty()) {
         return py::make_tuple(py::list(), error_collector.errors);
     }
 
-    NullErrorCollector null_error_collector;
-    compiler::Parser parser;
-    parser.RecordErrorsTo(&null_error_collector);
-
-    for (auto file : files) {
-        google::protobuf::FileDescriptorProto* proto_file = nullptr;
-        auto bytes = py::cast<std::string>(file.attr("read")());
-        std::unique_ptr<io::ZeroCopyInputStream> input(new io::ArrayInputStream(&bytes, bytes.length()));
-        io::Tokenizer tokenizer(input.get(), &null_error_collector);
-        parser.Parse(&tokenizer, proto_file);
-        proto_files.push_back(proto_file);
-    }
-
     auto bytes = py::list();
 
-    for (auto proto_file : proto_files) {
-        bytes.append(py::bytes(proto_file->SerializeAsString()));
+    for (const auto& proto_file : proto_files) {
+        bytes.append(py::bytes(proto_file.SerializeAsString()));
     }
 
     return py::make_tuple(bytes, py::list());
