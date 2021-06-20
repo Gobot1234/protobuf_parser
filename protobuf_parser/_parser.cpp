@@ -1,4 +1,3 @@
-// cppimport
 #include <tuple>
 #include <utility>
 #include <vector>
@@ -93,17 +92,15 @@ auto parse(const py::list &files) {
         proto_files.push_back(proto_file);
     }
 
-    if (!error_collector.errors.empty()) {
-        return py::make_tuple(py::list(), error_collector.errors);
-    }
-
     auto bytes = py::list();
 
-    for (const auto& proto_file : proto_files) {
-        bytes.append(py::bytes(proto_file.SerializeAsString()));
+    if (error_collector.errors.empty()) {
+        for (const auto& proto_file : proto_files) {
+            bytes.append(py::bytes(proto_file.SerializeAsString()));
+        }
     }
 
-    return py::make_tuple(bytes, py::list());
+    return py::make_tuple(bytes, error_collector.errors);
 }
 
 //std::vector<Error> run(py::args args, py::kwargs kwargs) {

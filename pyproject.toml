@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "protobuf_parser"
-version = "0.1.0"
+version = "1.0.0"
 description = "Bindings for the protoc compiler"
 authors = ["James <gobot1234yt@gmail.com>"]
 license = "MIT"
