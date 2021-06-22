@@ -33,9 +33,9 @@ parser = Pybind11Extension(
     "protobuf_parser._parser",
     ["protobuf_parser/_parser.cpp"],
     libraries=["protobuf"],
-    #library_dirs=["/Users/James/PycharmProjects/protobuf_parser/protobuf/src/.libs"]
+    library_dirs=["protobuf/src/.libs"]
 )
 parser._needs_stub = False
 command.extensions = [parser]
 command.run()
-# shutil.rmtree("build", ignore_errors=True)
+shutil.rmtree("build", ignore_errors=True)

@@ -72,14 +72,14 @@ def parse(*files: AnyPath | SupportsParse | FileDescriptorLike) -> tuple[list[by
 
     Returns
     -------
-    tuple[`bytes`, list[`Error`]]
+    tuple[list[`bytes`], list[`Error`]]
         A tuple of the FileDescriptor's bytes and any errors that were encountered when parsing.
     """
     files = list(files)
     for idx, file in enumerate(files):
         if not isinstance(file, SupportsParse):
             if isinstance(file, (os.PathLike, str, bytes)):
-                files[idx] = open(file, "r", encoding="utf-8")
+                files[idx] = open(file, "r", encoding="UTF-8")
             elif isinstance(file, FileDescriptorLike):
                 files[idx] = open_fileno(file)
             else:

@@ -1,7 +1,3 @@
-#include <tuple>
-#include <utility>
-#include <vector>
-
 #include <google/protobuf/compiler/command_line_interface.h>
 #include <google/protobuf/compiler/importer.h>
 #include <pybind11/pybind11.h>
@@ -14,7 +10,7 @@ namespace py = pybind11;
 namespace compiler = google::protobuf::compiler;
 namespace io = google::protobuf::io;
 
-class Error {
+class Error {  // TODO: make this inherit from Exception
     public:
         std::string filename;
         int line;
@@ -30,7 +26,7 @@ class Error {
 };
 
 
-class ErrorCollector : public google::protobuf::DescriptorPool::ErrorCollector, public io::ErrorCollector {  // this one actually does stuff
+class ErrorCollector : public google::protobuf::DescriptorPool::ErrorCollector, public io::ErrorCollector {
     public:
         std::vector<Error> errors;
         std::string current_filename;
@@ -82,12 +78,12 @@ auto parse(const py::list &files) {
         google::protobuf::FileDescriptorProto proto_file;
 
         auto bytes = file.attr("read")().cast<std::string>();
-        error_collector.current_filename = file.attr("name").cast<std::string>();
-        io::ArrayInputStream input(&bytes, bytes.size());
-        std::cout << "got some file\n" << bytes << "\n";
+        auto name = error_collector.current_filename = file.attr("name").cast<std::string>();
+        io::ArrayInputStream input(bytes.c_str(), bytes.size());
 
         io::Tokenizer tokenizer(&input, &error_collector);
-        parser.Parse(&tokenizer, &proto_file);
+        parser.Parse(&tokenizer, &proto_file);  // TODO: catch libprotobuf WARNING google/protobuf/compiler/parser.cc:651
+        proto_file.set_name(name.c_str());
         pool.BuildFileCollectingErrors(proto_file, &error_collector);
         proto_files.push_back(proto_file);
     }
@@ -95,7 +91,7 @@ auto parse(const py::list &files) {
     auto bytes = py::list();
 
     if (error_collector.errors.empty()) {
-        for (const auto& proto_file : proto_files) {
+        for (const auto &proto_file : proto_files) {
             bytes.append(py::bytes(proto_file.SerializeAsString()));
         }
     }
@@ -103,8 +99,13 @@ auto parse(const py::list &files) {
     return py::make_tuple(bytes, error_collector.errors);
 }
 
-//std::vector<Error> run(py::args args, py::kwargs kwargs) {
-//    std::vector
+
+//auto run(py::args args, py::kwargs kwargs) {
+//    compiler::CommandLineInterface cli;
+//    ErrorCollector error_collector;
+//
+//    cli.ParseArguments();
+//    return error_collector.errors;
 //}
 
 PYBIND11_MODULE(_parser, m) {

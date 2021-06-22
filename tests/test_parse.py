@@ -1,6 +1,8 @@
-from protobuf_parser import parse, Error
+from protobuf_parser import parse
 from io import StringIO
 import sys
+
+from betterproto.lib.google.protobuf import FileDescriptorProto
 
 
 class InputIO(StringIO):
@@ -10,19 +12,33 @@ class InputIO(StringIO):
 
 
 def test_valid_parse() -> None:
-    # input = InputIO("message hello {};")
-    output, errors = parse("test.proto")
+    # language=proto
+    input = """\
+    syntax = "proto3";
+
+    message hello {};
+    """
+
+    output, errors = parse(InputIO(input))
     assert not errors
-    print(output)
+    assert output
+    test = FileDescriptorProto().parse(output[0])
+    assert test.name == "test_valid_parse.proto"
+    assert test.message_type[0].name == "hello"
+    assert not test._unknown_fields
 
 
 def test_invalid_parse() -> None:
-    input = InputIO("""\
-message hello {};
+    # language=proto
+    input = """\
+    syntax = "proto3";
 
-fdfdfdfd
-""")
-    output, errors = parse(input)
+    message hello {};
+
+    error please
+    """
+
+    output, errors = parse(InputIO(input))
     assert not output
     assert errors
     assert all(isinstance(error, SyntaxError) for error in errors)

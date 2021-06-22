@@ -35,12 +35,12 @@ AnyPath: TypeAlias = "str | bytes | PathLike[str] | PathLike[bytes]"
 
 def open_fileno(x: FileDescriptorLike) -> TextIOWrapper:
     if isinstance(x, FileDescriptor):
-        return open(x, encoding="ascii")
+        return open(x, "r", encoding="UTF-8")
     elif isinstance(x, HasFileno):
         x = x.fileno()
         if not isinstance(x, FileDescriptor):
             raise TypeError("object.fileno(): returned a non-integer")
-        return open(x, encoding="ascii")
+        return open(x, "r", encoding="UTF-8")
 
     raise TypeError("object passed is not a file descriptor")
 
