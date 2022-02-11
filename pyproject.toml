@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "protobuf_parser"
 version = "1.0.0"
-description = "Bindings for the protoc compiler"
-authors = ["James <gobot1234yt@gmail.com>"]
+description = "Bindings for Google's protocol buffer compiler, protoc"
+authors = ["James Hilton-Balfe <gobot1234yt@gmail.com>"]
 license = "MIT"
 
 [tool.poetry.build]
@@ -10,13 +10,44 @@ script = "build.py"
 generate-setup-file = false
 
 [tool.poetry.dependencies]
-python = "^3.8"
-typing-extensions = "^3.10.0"
-tomli = "*"
+python = "^3.9"
+typing-extensions = "^4.0.0"
+tomli = "^1.2.2"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
+# [tool.poetry.dev-dependencies]
 pybind11 = "^2.6.2"
-betterproto = {git = "https://github.com/danielgtaylor/python-betterproto.git"}
+pytest = "^7.0.0"
+black = "^22.1.0"
+poethepoet = "^0.12.2"
+pre-commit = "^2.17.0"
+ipython = "^8.0.1"
+requests = "^2.27.1"
+
+[tool.poe.tasks]
+build_protobuf = {shell = """
+poetry run python build_protobuf.py
+cd protobuf
+./configure
+make -j
+sudo make install
+"""}
+
+[tool.poe.poetry_hooks]
+pre_build = "build_protobuf"
+
+[tool.black]
+line-length = 120
+
+[tool.isort]
+profile = "black"
+line_length = 120
+combine_as_imports = true
+atomic = true
+ensure_newline_before_comments = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "pybind11>=2.6.2", "tomli", "setuptools"]

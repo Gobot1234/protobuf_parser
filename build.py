@@ -2,40 +2,40 @@ from __future__ import annotations
 
 import shutil
 from pathlib import Path
-
-from setuptools.monkey import patch_all
-patch_all()
-from setuptools.dist import Distribution
+from tempfile import TemporaryDirectory
 import pybind11
-from pybind11.setup_helpers import Pybind11Extension, build_ext
 import tomli
+from pybind11.setup_helpers import Pybind11Extension, build_ext
+from setuptools import Distribution
 
-PROTOBUF_PARSER = Path("protobuf_parser").resolve()
+ROOT = Path(__file__).parent
+PROTOBUF_PARSER = ROOT / "protobuf_parser"
 
-PYPROJECT = tomli.load(open(Path("pyproject.toml")))
+PYPROJECT = tomli.loads((ROOT / "pyproject.toml").read_text("UTF-8"))
 VERSION: str = PYPROJECT["tool"]["poetry"]["version"]
 
 PROTOBUF_PARSER.joinpath("_version.py").write_text(f'__version__ = "{VERSION}"\n')
 
 # make sure that the header files are copied to pybind's include folder before compilation
 INCLUDE = Path(pybind11.__file__).parent / "include"
-GOOGLE = Path("protobuf", "src", "google").resolve()
+GOOGLE = ROOT / "protobuf" / "src" / "google"
 try:
     shutil.move(GOOGLE, INCLUDE, copy_function=shutil.copytree)
 except (FileNotFoundError, shutil.Error):  # shouldn't happen in normal code however may happen during development
     pass
 
 
-command = build_ext(Distribution())
-command.finalize_options()
-command.build_lib = str(PROTOBUF_PARSER.parent)
-parser = Pybind11Extension(
-    "protobuf_parser._parser",
-    ["protobuf_parser/_parser.cpp"],
-    libraries=["protobuf"],
-    library_dirs=["protobuf/src/.libs"]
-)
-parser._needs_stub = False
-command.extensions = [parser]
-command.run()
-shutil.rmtree("build", ignore_errors=True)
+with TemporaryDirectory() as temp_dir:
+    command = build_ext(Distribution())
+    command.finalize_options()
+    command.build_lib = temp_dir
+    parser = Pybind11Extension(
+        "protobuf_parser._parser",
+        ["protobuf_parser/_parser/lib.cpp"],
+        libraries=["protobuf"],
+        library_dirs=["protobuf/src/.libs"],
+        extra_objects=["protobuf/src/.libs/libprotobuf.a"],
+    )
+    parser._needs_stub = False  # type: ignore
+    command.extensions = [parser]
+    command.run()
