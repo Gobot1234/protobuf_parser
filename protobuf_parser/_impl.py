@@ -59,20 +59,20 @@ def parse(*files_: AnyPath | SupportsParse | FileDescriptorLike) -> tuple[list[b
         A tuple of the FileDescriptor's bytes and any errors that were encountered when parsing.
     """
     files: list[SupportsParse] = []
-    for idx, file in enumerate(files_):
-        if not isinstance(file, SupportsParse):
-            if isinstance(file, (os.PathLike, str, bytes)):
-                files[idx] = FPWithName(open(file, "r", encoding="UTF-8"), os.fspath(file))
-            elif isinstance(file, FileDescriptorLike):
-                files[idx] = FPWithName(open_fileno(file), f"fd-{file}.proto")
-            else:
-                raise TypeError(f"parse doesn't support passing {file.__class__} as a file argument")
-
-    output, errors = _parse(*files)
+    for file in files_:
+        if isinstance(file, SupportsParse):
+            files.append(file)
+        elif isinstance(file, (os.PathLike, str, bytes)):
+            files.append(FPWithName(open(file, "r", encoding="UTF-8"), os.fspath(file)))
+        elif isinstance(file, FileDescriptorLike):
+            files.append(FPWithName(open_fileno(file), f"fd-{file!r}.proto"))
+        else:
+            raise TypeError(f"parse doesn't support passing {file.__class__} as a file argument")
+    output, errors = _parse(files)
     return output, [Error(error) for error in errors]
 
 
-# TODO
+# TODO this segfaults
 def run(*args: SupportsStr, **kwargs: SupportsStr) -> Sequence[Error]:
     """Manually invoke protoc.
 

@@ -28,13 +28,14 @@ except (FileNotFoundError, shutil.Error):  # shouldn't happen in normal code how
 with TemporaryDirectory() as temp_dir:
     command = build_ext(Distribution())
     command.finalize_options()
-    command.build_lib = temp_dir
+    command.build_lib = str(ROOT)
     parser = Pybind11Extension(
         "protobuf_parser._parser",
         ["protobuf_parser/_parser/lib.cpp"],
         libraries=["protobuf"],
         library_dirs=["protobuf/src/.libs"],
-        extra_objects=["protobuf/src/.libs/libprotobuf.a"],
+        extra_objects=["protobuf/src/.libs/libprotobuf.a", "protobuf/src/.libs/libprotoc.a"],
+        extra_compile_args=["-std=c++14"],
     )
     parser._needs_stub = False  # type: ignore
     command.extensions = [parser]

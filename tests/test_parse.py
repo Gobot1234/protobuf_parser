@@ -27,7 +27,7 @@ def test_valid_parse() -> None:
     test = FileDescriptorProto().parse(output[0])
     assert test.name == "test_valid_parse.proto"
     assert test.message_type[0].name == "Test"
-    assert not test._unknown_fields
+    assert not test._unknown_fields  # test that there weren't any bits that couldn't be parsed
 
 
 def test_invalid_parse() -> None:
