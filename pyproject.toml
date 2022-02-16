@@ -19,7 +19,6 @@ pytest = "^7.0.0"
 black = "^22.1.0"
 poethepoet = {version = "^0.12.3", extras = ["poetry_plugin"]}
 pre-commit = "^2.17.0"
-requests = "^2.27.1"
 betterproto = {version = "2.0.0b4", extras = ["compiler"]}
 setuptools = "^60.9.1"
 tomli = "^1.2.2"
@@ -48,5 +47,5 @@ typeCheckingMode = "strict"
 testpaths = ["tests"]
 
 [build-system]
-requires = ["poetry-core>=1.0.0", "pybind11>=2.6.2", "tomli", "setuptools", "requests"]
+requires = ["poetry-core>=1.0.0", "pybind11", "tomli", "setuptools"]
 build-backend = "poetry.core.masonry.api"

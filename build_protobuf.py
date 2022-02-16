@@ -7,7 +7,7 @@ from contextlib import contextmanager
 from io import BytesIO
 from pathlib import Path
 
-import requests
+from urllib.request import urlopen
 
 VERSION = "3.19.4"
 
@@ -18,10 +18,10 @@ def download() -> None:
         return print("already exists")
 
     # get most recent tag
-    r = requests.get(
+    r = urlopen(
         f"https://github.com/protocolbuffers/protobuf/releases/download/v{VERSION}/protobuf-cpp-{VERSION}.tar.gz"
     )
-    with tarfile.open(fileobj=BytesIO(r.content)) as file:
+    with tarfile.open(fileobj=BytesIO(r.read())) as file:
         file.extractall()
 
     folder = Path(f"protobuf-{VERSION}")
@@ -31,7 +31,7 @@ def download() -> None:
 
 @contextmanager
 def cd(path: str) -> Generator[None, None, None]:
-    cwd = Path.cwd()
+    cwd = os.getcwd()
     os.chdir(path)
     try:
         yield
