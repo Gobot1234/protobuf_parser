@@ -44,12 +44,17 @@ def build() -> None:
         if Path("src/.libs").exists():  # no point rebuilding
             return print("its already there?")
 
-        print("running configure")
-        subprocess.run(["./configure"])
-        print("running make")
-        subprocess.run(["make"])
-        print("running make install")
-        subprocess.run(["make", "install"])
+        if sys.platform != "win32":
+            print("running configure")
+            subprocess.run(["./configure"])
+            print("running make")
+            subprocess.run(["make"])
+            print("running make install")
+            subprocess.run(["make", "install"])
+        else:
+            subprocess.run(["git", "clone", "https://github.com/microsoft/vcpkg"])
+            subprocess.run([".\vcpkg\bootstrap-vcpkg.bat"])
+            subprocess.run([".\vcpkg\vcpkg", "install", "protobuf", "protobuf:x64-windows"])
 
 
 def main() -> int:
