@@ -37,7 +37,7 @@ parser = Pybind11Extension(
     [str(PROTOBUF_PARSER / "_parser" / "lib.cpp")],
     libraries=["protobuf"],
     library_dirs=[str(LIBS)],
-    # extra_objects=[str(LIBS / "libprotobuf.a"), str(LIBS / "libprotoc.a")],
+    extra_objects=[str(LIBS / "libprotobuf.a"), str(LIBS / "libprotoc.a")],
     extra_compile_args=["-std=c++14"],
 )
 parser._needs_stub = False  # type: ignore
