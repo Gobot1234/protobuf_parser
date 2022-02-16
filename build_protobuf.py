@@ -15,7 +15,7 @@ VERSION = "3.19.4"
 def download() -> None:
     protobuf = Path("protobuf")
     if protobuf.exists():
-        return print("already exists")
+        return
 
     # get most recent tag
     r = urlopen(
@@ -26,7 +26,6 @@ def download() -> None:
 
     folder = Path(f"protobuf-{VERSION}")
     folder.rename(protobuf)
-    print("extracted and renamed")
 
 
 @contextmanager
@@ -45,23 +44,18 @@ def build() -> None:
             return print("its already there?")
 
         if sys.platform != "win32":
-            print("running configure")
             subprocess.run(["./configure"])
-            print("running make")
             subprocess.run(["make"])
-            print("running make install")
             subprocess.run(["make", "install"])
         else:
-            subprocess.run(["git", "clone", "https://github.com/microsoft/vcpkg"])
+            subprocess.run(["git", "clone", "https://github.com/microsoft/vcpkg", "--depth=1"])
             subprocess.run([r".\vcpkg\bootstrap-vcpkg.bat"])
             subprocess.run([r".\vcpkg\vcpkg", "install", "protobuf", "protobuf:x64-windows"])
 
 
 def main() -> int:
-    print("about to download")
     download()
     build()
-    print("finished")
     return 0
 
 

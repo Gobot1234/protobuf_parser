@@ -45,6 +45,5 @@ jobs:
           poetry publish --build --username ${{ secrets.PYPI_USERNAME }} --password ${{ secrets.PYPI_PASSWORD }}
 
       - name: Test
-        if: github.action.event_name == 'push' || github.action.event_name == 'pull_request'
         run: |
           poetry run pytest .
