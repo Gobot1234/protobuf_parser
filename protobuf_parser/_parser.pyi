@@ -1,6 +1,7 @@
 # Copyright (c) James Hilton-Balfe under the MIT License see LICENSE
 
 from typing import final
+
 from ._types import SupportsParse
 
 @final

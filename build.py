@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import shutil
+import subprocess
 from pathlib import Path
+import sys
+
 import pybind11
 import tomli
 from pybind11.setup_helpers import Pybind11Extension, build_ext
@@ -15,6 +18,8 @@ PYPROJECT = tomli.loads(ROOT.joinpath("pyproject.toml").read_text("UTF-8"))
 VERSION: str = PYPROJECT["tool"]["poetry"]["version"]
 
 PROTOBUF_PARSER.joinpath("_version.py").write_text(f'__version__ = "{VERSION}"\n')
+if not ROOT.joinpath("protobuf").exists():
+    subprocess.run([sys.executable, "-m", "poe", "build_protobuf"])
 
 # make sure that the header files are copied to pybind's include folder before compilation
 INCLUDE = Path(pybind11.__file__).parent / "include"
