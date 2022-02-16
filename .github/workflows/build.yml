@@ -37,7 +37,7 @@ jobs:
 
       - name: Install dependencies
         # if: steps.cached-dependecies.outputs.cache-hit != 'true'
-        run: poetry install
+        run: poetry plugin add "poethepoet[poetry_plugin]" && poetry install
 
       - name: Build wheels
         if: github.action.event_name == 'release'
