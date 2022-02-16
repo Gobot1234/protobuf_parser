@@ -13,7 +13,11 @@ jobs:
     runs-on: ${{ matrix.os }}-latest
     strategy:
       matrix:
-        os: [Ubuntu, MacOS] #, Windows]
+        os: [
+          # Ubuntu,
+          MacOS,
+          # Windows,
+        ]
         python-version: ["3.9"] #, "3.10"]
     steps:
       - uses: actions/checkout@v2
