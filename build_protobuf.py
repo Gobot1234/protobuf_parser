@@ -53,8 +53,8 @@ def build() -> None:
             subprocess.run(["make", "install"])
         else:
             subprocess.run(["git", "clone", "https://github.com/microsoft/vcpkg"])
-            subprocess.run([".\vcpkg\bootstrap-vcpkg.bat"])
-            subprocess.run([".\vcpkg\vcpkg", "install", "protobuf", "protobuf:x64-windows"])
+            subprocess.run([r".\vcpkg\bootstrap-vcpkg.bat"])
+            subprocess.run([r".\vcpkg\vcpkg", "install", "protobuf", "protobuf:x64-windows"])
 
 
 def main() -> int:
