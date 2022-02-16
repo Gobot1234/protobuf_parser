@@ -48,7 +48,7 @@ def build() -> None:
         subprocess.run(["make install"])
 
 
-def main():
+def main() -> int:
     download()
     build()
     return 0
