@@ -25,8 +25,7 @@ auto parse(const py::list& files) {
         google::protobuf::FileDescriptorProto proto_file;
 
         auto bytes = file.attr("read")().cast<std::string>();
-        auto name = error_collector.current_filename =
-            file.attr("name").cast<std::string>();
+        auto name = error_collector.current_filename = file.attr("name").cast<std::string>();
         proto_file.set_name(name.c_str());
 
         io::ArrayInputStream input(bytes.c_str(), bytes.size());

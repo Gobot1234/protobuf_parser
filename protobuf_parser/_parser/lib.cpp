@@ -13,6 +13,6 @@ PYBIND11_MODULE(_parser, m) {
         .def_readonly("column", &Error::column)
         .def_readonly("message", &Error::message)
         .def_readonly("warning", &Error::warning);
-    m.def("parse", &parse, "");
-    m.def("run", &run, "");
+    m.def("parse", parse, "");
+    m.def("run", run, "");
 }

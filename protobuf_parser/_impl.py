@@ -1,9 +1,13 @@
+# Copyright (c) James Hilton-Balfe under the MIT License see LICENSE
+
 from __future__ import annotations
-from dataclasses import dataclass
+from collections import defaultdict
 
 import os
+from collections.abc import Iterable
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Sequence
+from typing import Generic, Sequence, TypeVar
 
 from ._parser import Error as _Error, parse as _parse, run as _run
 from ._types import *
@@ -13,8 +17,13 @@ __all__ = (
     "Error",
     "Warning",
     "parse",
+    "ParseResult",
     "run",
+    "RunResult",
 )
+
+ParseableFileT = TypeVar("ParseableFileT", AnyPath, SupportsParse, FileDescriptorLike)
+RunableFileT = TypeVar("RunableFileT", bound=AnyPath)
 
 
 class Error(Exception):
@@ -37,6 +46,13 @@ class Warning(Error, Warning):
 
 
 @dataclass
+class ParseResult(Generic[ParseableFileT]):
+    file: ParseableFileT  # this will be seeked to the end
+    parsed: bytes
+    errors: Sequence[Error]
+
+
+@dataclass
 class FPWithName:
     fp: TextIOWrapper
     name: str | bytes
@@ -45,7 +61,7 @@ class FPWithName:
         return self.fp.read()
 
 
-def parse(*files_: AnyPath | SupportsParse | FileDescriptorLike) -> tuple[list[bytes], Sequence[Error]]:
+def parse(*files_: ParseableFileT) -> Sequence[ParseResult[ParseableFileT]]:
     """Parse files using protoc.
 
     Parameters
@@ -59,7 +75,7 @@ def parse(*files_: AnyPath | SupportsParse | FileDescriptorLike) -> tuple[list[b
         A tuple of the FileDescriptor's bytes and any errors that were encountered when parsing.
     """
     files: list[SupportsParse] = []
-    for file in files_:
+    for file in files_:  # TODO make the path actually correct
         if isinstance(file, SupportsParse):
             files.append(file)
         elif isinstance(file, (os.PathLike, str, bytes)):
@@ -67,13 +83,29 @@ def parse(*files_: AnyPath | SupportsParse | FileDescriptorLike) -> tuple[list[b
         elif isinstance(file, FileDescriptorLike):
             files.append(FPWithName(open_fileno(file), f"fd-{file!r}.proto"))
         else:
-            raise TypeError(f"parse doesn't support passing {file.__class__} as a file argument")
-    output, errors = _parse(files)
-    return output, [Error(error) for error in errors]
+            raise TypeError()
+
+    parsed, errors = _parse(files)
+    error_map: defaultdict[str | bytes, list[Error]] = defaultdict(list)
+    for error in errors:
+        error_map[error.filename].append(Error(error))
+
+    return [
+        ParseResult(file, parsed, error_map[supports_parse.name])
+        for file, parsed, supports_parse in zip(files_, parsed, files)
+    ]
+
+
+@dataclass
+class RunResult(Generic[RunableFileT]):
+    input: RunableFileT
+    errors: Sequence[Error]
+    output: Path
 
 
 # TODO this segfaults
-def run(*args: SupportsStr, **kwargs: SupportsStr) -> Sequence[Error]:
+# TODO better api like parse
+def run(*filenames: RunableFileT, outputs: Iterable[str]) -> Sequence[RunResult[RunableFileT]]:
     """Manually invoke protoc.
 
     Parameters

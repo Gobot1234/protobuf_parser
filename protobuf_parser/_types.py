@@ -1,3 +1,5 @@
+# Copyright (c) James Hilton-Balfe under the MIT License see LICENSE
+
 from __future__ import annotations
 
 from io import TextIOWrapper
