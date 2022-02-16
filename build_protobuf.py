@@ -47,9 +47,9 @@ def build() -> None:
         print("running configure")
         subprocess.run(["./configure"])
         print("running make")
-        subprocess.run(["make -j"])
+        subprocess.run(["make"])
         print("running make install")
-        subprocess.run(["make install"])
+        subprocess.run(["make", "install"])
 
 
 def main() -> int:
