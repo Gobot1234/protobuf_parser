@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import os
 from collections import defaultdict
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Generic, Sequence, TypeVar
+from typing import Generic, TypeVar
 
 from ._parser import Error as _Error, parse as _parse, run as _run
 from ._types import *
@@ -31,14 +31,14 @@ class Error(Exception):
         return super().__new__(Warning if c_error.warning else Error)
 
     def __init__(self, c_error: _Error) -> None:
-        self.file = Path(c_error.filename)
+        self.filename = c_error.filename
         self.line = c_error.line
         self.column = c_error.column
         self.message = c_error.message
         super().__init__(c_error.message)
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__} {self.file}:{self.line}:{self.column}: {self.message!r}>"
+        return f"<{self.__class__.__name__} {self.filename}:{self.line}:{self.column}: {self.message!r}>"
 
 
 class Warning(Error, Warning):
@@ -71,22 +71,25 @@ def parse(*files_: ParseableFileT) -> Sequence[ParseResult[ParseableFileT]]:
 
     Returns
     -------
-    tuple[list[bytes], list[Error]]
-        A tuple of the FileDescriptor's bytes and any errors that were encountered when parsing.
+    A sequence of results containing the original file, the FileDescriptor's bytes and any errors that were encountered when
+    parsing.
     """
     files: list[SupportsParse] = []
-    for file in files_:  # TODO make the path actually correct
+    for file in files_:
         if isinstance(file, SupportsParse):
             files.append(file)
         elif isinstance(file, (os.PathLike, str, bytes)):
             files.append(FPWithName(open(file, "r", encoding="UTF-8"), os.fspath(file)))
-        elif isinstance(file, FileDescriptorLike):
+        elif isinstance(file, FileDescriptorLike):  # type: ignore
             files.append(FPWithName(open_fileno(file), f"fd-{file!r}.proto"))
         else:
-            raise TypeError()
+            raise TypeError(
+                f"file was excepted to be of type {ParseableFileT.__constraints__} "
+                f"not {file.__class__!r}"  # type: ignore
+            )
 
     parsed, errors = _parse(files)
-    error_map: defaultdict[str | bytes, list[Error]] = defaultdict(list)
+    error_map: "defaultdict[str | bytes, list[Error]]" = defaultdict(list)
     for error in errors:
         error_map[error.filename].append(Error(error))
 

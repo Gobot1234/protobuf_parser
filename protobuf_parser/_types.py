@@ -2,16 +2,10 @@
 
 from __future__ import annotations
 
+import sys
 from io import TextIOWrapper
 from os import PathLike
-from typing import TYPE_CHECKING, Protocol, runtime_checkable
-
-from typing_extensions import TypeAlias
-
-
-class SupportsStr(Protocol):  # technically just be Any, but it looks much nicer in signatures
-    def __str__(self) -> str:
-        ...
+from typing import Protocol, runtime_checkable, Union
 
 
 @runtime_checkable
@@ -22,20 +16,21 @@ class SupportsParse(Protocol):
         ...
 
 
+FileDescriptor = int
+
+
 @runtime_checkable
 class HasFileno(Protocol):
-    def fileno(self) -> int:
+    def fileno(self) -> FileDescriptor:
         ...
 
 
-FileDescriptor = int
-
-if TYPE_CHECKING:
-    FileDescriptorLike: TypeAlias = "FileDescriptor | HasFileno"
+if sys.version_info >= (3, 10):
+    FileDescriptorLike = FileDescriptor | HasFileno
+    AnyPath = str | bytes | PathLike[str] | PathLike[bytes]
 else:
-    FileDescriptorLike = (FileDescriptor, HasFileno)
-
-AnyPath: TypeAlias = "str | bytes | PathLike[str] | PathLike[bytes]"
+    FileDescriptorLike = Union[FileDescriptor, HasFileno]
+    AnyPath = Union[str, bytes, PathLike[str], PathLike[bytes]]
 
 
 def open_fileno(x: FileDescriptorLike) -> TextIOWrapper:

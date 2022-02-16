@@ -12,18 +12,17 @@ generate-setup-file = false
 [tool.poetry.dependencies]
 python = "^3.9"
 typing-extensions = "^4.1.1"
-tomli = "^1.2.2"
 
 [tool.poetry.group.dev.dependencies]
 pybind11 = "^2.6.2"
 pytest = "^7.0.0"
 black = "^22.1.0"
-poethepoet = "^0.12.2"
+poethepoet = {version = "^0.12.3", extras = ["poetry_plugin"]}
 pre-commit = "^2.17.0"
-ipython = "^8.0.1"
 requests = "^2.27.1"
 betterproto = {version = "2.0.0b4", extras = ["compiler"]}
 setuptools = "^60.9.1"
+tomli = "^1.2.2"
 
 [tool.poe.tasks.build_protobuf]
 help = "Build the protobuf directory"
