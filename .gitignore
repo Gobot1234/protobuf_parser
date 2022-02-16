@@ -17,6 +17,7 @@ sdist/
 wheels/
 *.egg-info/
 *.egg
+poetry.lock
 
 .idea
 .DS_Store
