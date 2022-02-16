@@ -2,7 +2,7 @@
 
 from typing import final
 
-from ._types import SupportsParse
+from .._types import SupportsParse
 
 @final
 class Error:

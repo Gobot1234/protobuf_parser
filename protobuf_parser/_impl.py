@@ -9,9 +9,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Generic, Sequence, TypeVar
 
-from ._parser import Error as _Error
-from ._parser import parse as _parse
-from ._parser import run as _run
+from ._parser import Error as _Error, parse as _parse, run as _run
 from ._types import *
 from ._version import __version__
 
