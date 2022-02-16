@@ -49,5 +49,5 @@ typeCheckingMode = "strict"
 testpaths = ["tests"]
 
 [build-system]
-requires = ["poetry-core>=1.0.0", "pybind11>=2.6.2", "tomli", "setuptools"]
+requires = ["poetry-core>=1.0.0", "pybind11>=2.6.2", "tomli", "setuptools", "requests"]
 build-backend = "poetry.core.masonry.api"

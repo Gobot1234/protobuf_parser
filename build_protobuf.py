@@ -51,6 +51,7 @@ def build() -> None:
 def main() -> int:
     download()
     build()
+    print("finished")
     return 0
 
 
