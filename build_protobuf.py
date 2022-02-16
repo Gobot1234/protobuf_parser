@@ -49,7 +49,6 @@ def build() -> None:
 
 
 def main():
-    print("working")
     download()
     build()
     return 0
