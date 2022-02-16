@@ -15,7 +15,7 @@ VERSION = "3.19.4"
 def download() -> None:
     protobuf = Path("protobuf")
     if protobuf.exists():
-        return
+        return print("already exists")
 
     # get most recent tag
     r = requests.get(
@@ -26,6 +26,7 @@ def download() -> None:
 
     folder = Path(f"protobuf-{VERSION}")
     folder.rename(protobuf)
+    print("extracted and renamed")
 
 
 @contextmanager
@@ -41,14 +42,18 @@ def cd(path: str) -> Generator[None, None, None]:
 def build() -> None:
     with cd("protobuf"):
         if Path("src/.libs").exists():  # no point rebuilding
-            return
+            return print("its already there?")
 
+        print("running configure")
         subprocess.run(["./configure"])
+        print("running make")
         subprocess.run(["make -j"])
+        print("running make install")
         subprocess.run(["make install"])
 
 
 def main() -> int:
+    print("about to download")
     download()
     build()
     print("finished")
