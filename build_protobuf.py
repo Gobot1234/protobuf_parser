@@ -41,11 +41,11 @@ def cd(path: str) -> Generator[None, None, None]:
 def build() -> None:
     with cd("protobuf"):
         if Path("src/.libs").exists():  # no point rebuilding
-            return print("its already there?")
+            return
 
         if sys.platform != "win32":
             subprocess.run(["./configure"])
-            subprocess.run(["make"])
+            subprocess.run(["make", "-j"])
             subprocess.run(["make", "install"])
         else:
             subprocess.run(["git", "clone", "https://github.com/microsoft/vcpkg", "--depth=1"])

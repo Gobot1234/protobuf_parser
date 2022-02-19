@@ -27,10 +27,12 @@ class HasFileno(Protocol):
 
 if sys.version_info >= (3, 10):
     FileDescriptorLike = FileDescriptor | HasFileno
-    AnyPath = str | bytes | PathLike[str] | PathLike[bytes]
+    StrPath = str | PathLike[str]
+    AnyPath = StrPath | bytes | PathLike[bytes]
 else:
     FileDescriptorLike = Union[FileDescriptor, HasFileno]
-    AnyPath = Union[str, bytes, PathLike[str], PathLike[bytes]]
+    StrPath = Union[str, PathLike[str]]
+    AnyPath = Union[StrPath, bytes, PathLike[bytes]]
 
 
 def open_fileno(x: FileDescriptorLike) -> TextIOWrapper:

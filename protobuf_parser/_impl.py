@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import os
 from collections import defaultdict
-from collections.abc import Iterable, Sequence
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Generic, TypeVar
+from typing import Any, Generic, TypeVar
 
 from ._parser import Error as _Error, parse as _parse, run as _run
 from ._types import *
@@ -23,7 +23,7 @@ __all__ = (
 )
 
 ParseableFileT = TypeVar("ParseableFileT", AnyPath, SupportsParse, FileDescriptorLike)
-RunableFileT = TypeVar("RunableFileT", bound=AnyPath)
+RunableFileT = TypeVar("RunableFileT", bound=StrPath)
 
 
 class Error(Exception):
@@ -47,9 +47,12 @@ class Warning(Error, Warning):
 
 @dataclass
 class ParseResult(Generic[ParseableFileT]):
-    file: ParseableFileT  # this will be seeked to the end
+    input: ParseableFileT
+    """The inputted file, `tell`, if applicable will be set to the end."""
     parsed: bytes
+    """The parsed contents of a ``FileDescriptor`` representing this file."""
     errors: Sequence[Error]
+    """Any errors encountered when parsing the file."""
 
 
 @dataclass
@@ -102,13 +105,46 @@ def parse(*files_: ParseableFileT) -> Sequence[ParseResult[ParseableFileT]]:
 @dataclass
 class RunResult(Generic[RunableFileT]):
     input: RunableFileT
+    output: Path | None
     errors: Sequence[Error]
-    output: Path
 
 
-# TODO this segfaults
-# TODO better api like parse
-def run(*filenames: RunableFileT, outputs: Iterable[str]) -> Sequence[RunResult[RunableFileT]]:
+SENTINEL = object()
+FILLER = (SENTINEL, SENTINEL)
+
+
+def run(*filenames: RunableFileT) -> Sequence[RunResult[RunableFileT]]:
+    """Run the python code generator on ``filenames``.
+
+    Returns
+    -------
+    A sequence of results containing the original filename, the outputted file and any errors that were encountered
+    when parsing.
+    """
+    results: list[RunResult[RunableFileT]] = []
+
+    paths = [Path(file).resolve(strict=True) for file in filenames]
+    include = paths[0].parent
+    assert all((path.parent == include for path in paths))
+
+    files, errors = _run([str(path.relative_to(include)) for path in paths], [str(include)])
+
+    error_map: "defaultdict[str | bytes, list[Error]]" = defaultdict(list)
+    for error in errors:
+        error_map[error.filename].append(Error(error))
+
+    for input, (filename, contents) in zip(filenames, files):
+        if contents:
+            output = include.joinpath(filename)
+            output.write_text(contents)
+        else:
+            output = None
+        results.append(RunResult(input, output, error_map[filename]))
+
+    return results
+
+
+def protoc(*args: Any, **kwargs: Any) -> Sequence[Error]:
     """Manually invoke protoc.
 
     Parameters
@@ -121,7 +157,7 @@ def run(*filenames: RunableFileT, outputs: Iterable[str]) -> Sequence[RunResult[
     Example
     -------
     ```py
-    >>> run("this", "that", I="hello")
+    >>> protoc("this", "that", I="hello")
     # would be equivalent to
     # protoc -I=hello this that
     ```
@@ -131,5 +167,4 @@ def run(*filenames: RunableFileT, outputs: Iterable[str]) -> Sequence[RunResult[
     list[`Error`]
         The errors that were encountered when invoking protoc.
     """
-
-    return [Error(error) for error in _run(*[str(arg) for arg in args], **{k: str(v) for k, v in kwargs.items()})]
+    raise NotImplementedError()

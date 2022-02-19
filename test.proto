@@ -1,6 +1,0 @@
-
-option cc_generic_services = true;
-message CPlayer_GetFriendsAppsActivity_Request {
-	optional string news_language = 1 [(description) = "Language for which to query about news items (for the being_discussed results). DEPRECATED AND UNUSED."];
-	optional uint32 request_flags = 2 [(description) = "Flags describing the request; see EGetFriendsAppsActivityFlags"];
-}

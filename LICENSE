@@ -26,7 +26,7 @@ This project redistributes parts of:
 
     - https://github.com/grpc/grpc/blob/master/tools/distrib/python/grpcio_tools/grpc_tools/main.cc
 
-With changes to function names and removes the extra gRPC support for python only support.
+With changes to function names and removes the extra gRPC support.
 
 Which is licensed under Apache Version 2
 

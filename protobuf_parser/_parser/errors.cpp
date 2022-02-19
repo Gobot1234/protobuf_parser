@@ -17,11 +17,7 @@ class Error {  // TODO make this inherit from Exception
     std::string message;
     bool warning;
 
-    Error(const std::string& filename_,
-          int line_,
-          int column_,
-          const std::string& message_,
-          bool warning_) {
+    Error(const std::string& filename_, int line_, int column_, const std::string& message_, bool warning_) {
         filename = filename_;
         line = line_;
         column = column_;
@@ -41,13 +37,11 @@ class ErrorCollector : public google::protobuf::DescriptorPool::ErrorCollector,
 
     // parsing errors
     void AddError(int line, int column, const std::string& message) override {
-        errors.emplace_back(current_filename, line + 1, column + 1, message,
-                            false);
+        errors.emplace_back(current_filename, line + 1, column + 1, message, false);
         has_errors = true;
     }
     void AddWarning(int line, int column, const std::string& message) override {
-        errors.emplace_back(current_filename, line + 1, column + 1, message,
-                            true);
+        errors.emplace_back(current_filename, line + 1, column + 1, message, true);
     }
 
     // conversion errors
@@ -68,17 +62,11 @@ class ErrorCollector : public google::protobuf::DescriptorPool::ErrorCollector,
         errors.emplace_back(filename, 1, 1, message, true);
     }
 
-    void AddError(const std::string& filename,
-                  int line,
-                  int column,
-                  const std::string& message) override {
+    void AddError(const std::string& filename, int line, int column, const std::string& message) override {
         errors.emplace_back(filename, line, column, message, true);
     }
 
-    void AddWarning(const std::string& filename,
-                    int line,
-                    int column,
-                    const std::string& message) override {
+    void AddWarning(const std::string& filename, int line, int column, const std::string& message) override {
         errors.emplace_back(filename, line, column, message, false);
     }
 
