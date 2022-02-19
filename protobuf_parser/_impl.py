@@ -105,12 +105,11 @@ def parse(*files_: ParseableFileT) -> Sequence[ParseResult[ParseableFileT]]:
 @dataclass
 class RunResult(Generic[RunableFileT]):
     input: RunableFileT
+    """The inputted filename."""
     output: Path | None
+    """The location of the outputted file. ``None`` if it failed to import."""
     errors: Sequence[Error]
-
-
-SENTINEL = object()
-FILLER = (SENTINEL, SENTINEL)
+    """Any errors encountered when parsing the file."""
 
 
 def run(*filenames: RunableFileT) -> Sequence[RunResult[RunableFileT]]:

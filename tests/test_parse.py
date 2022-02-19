@@ -48,23 +48,29 @@ def test_invalid_parse() -> None:
 
 def test_parse_warnings() -> None:
     # language=proto
-    input = """
+    input = InputIO(
+        """
     message test {};
     """
+    )
 
-    output, warnings = parse(InputIO(input))
-    assert output
-    assert warnings
+    (result,) = parse(input)
+    assert result.parsed
+    assert result.input == input
+    assert not result.errors  # TODO remove by making PR to change
+    # https://github.com/protocolbuffers/protobuf/blob/2d69d44cc18beaa0a3a62d353f80aead669abb5c/src/google/protobuf/compiler/parser.cc#L649-L653
+    # assert result.errors
 
-    assert all(isinstance(error, Warning) for error in warnings)
+    # assert all(isinstance(error, Warning) for error in warnings)
 
 
 def test_file_parse() -> None:
-    output, errors = parse("test.proto")
-    assert not errors
-    assert output
+    (result,) = parse("test.proto")
+    assert not result.errors
+    assert result.parsed
+    assert result.input == "test.proto"
 
-    file = FileDescriptorProto().parse(output[0])
+    file = FileDescriptorProto().parse(result.parsed)
 
     assert file.name == "test.proto"
     assert file.message_type[0].name == "Test"
@@ -101,8 +107,8 @@ def test_multiple_files() -> None:
     file_2.name = "file_2.proto"
     file_3.name = "file_3.proto"
 
-    outputs, errors = parse(file_1, file_2, file_3)
+    results = parse(file_1, file_2, file_3)
 
-    assert not errors
-    files = [FileDescriptorProto().parse(data) for data in outputs]
+    assert not any(result.errors for result in results)
+    files = [FileDescriptorProto().parse(result.parsed) for result in results]
     assert [file.name for file in files] == [file_1.name, file_2.name, file_3.name]
