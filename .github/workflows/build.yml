@@ -15,7 +15,7 @@ jobs:
       matrix:
         os: [Ubuntu, MacOS, Windows]
         python-version: ["3.9", "3.10"]
-        fail-fast: [false, false]
+        fail-fast: [false]
     steps:
       - uses: actions/checkout@v2
 
@@ -47,4 +47,5 @@ jobs:
 
       - name: Test
         run: |
+          cd tests
           poetry run pytest tests
