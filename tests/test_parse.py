@@ -15,16 +15,19 @@ class InputIO(StringIO):
 
 def test_valid_parse() -> None:
     # language=proto
-    input = """
+    input = InputIO(
+        """
     syntax = "proto3";
 
     message Test {};
     """
+    )
 
-    output, errors = parse(InputIO(input))
-    assert not errors
-    assert output
-    test = FileDescriptorProto().parse(output[0])
+    (result,) = parse(input)
+    assert not result.errors
+    assert result.input == input
+    assert result.parsed
+    test = FileDescriptorProto().parse(result.parsed)
     assert test.name == "test_valid_parse.proto"
     assert test.message_type[0].name == "Test"
     assert not test._unknown_fields  # test that there weren't any bits that couldn't be parsed
@@ -40,10 +43,10 @@ def test_invalid_parse() -> None:
     error please
     """
 
-    output, errors = parse(InputIO(input))
-    assert not output
-    assert errors
-    assert errors[0].line == 6
+    (result,) = parse(InputIO(input))
+    assert not result.parsed
+    assert result.errors
+    assert result.errors[0].line == 6
 
 
 def test_parse_warnings() -> None:
@@ -57,10 +60,8 @@ def test_parse_warnings() -> None:
     (result,) = parse(input)
     assert result.parsed
     assert result.input == input
-    assert not result.errors  # TODO remove by making PR to change
+    assert result.errors  # TODO remove by making PR to change
     # https://github.com/protocolbuffers/protobuf/blob/2d69d44cc18beaa0a3a62d353f80aead669abb5c/src/google/protobuf/compiler/parser.cc#L649-L653
-    # assert result.errors
-
     # assert all(isinstance(error, Warning) for error in warnings)
 
 
