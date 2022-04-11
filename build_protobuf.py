@@ -9,7 +9,7 @@ from pathlib import Path
 
 from urllib.request import urlopen
 
-VERSION = "3.19.4"
+VERSION = "3.20.0"
 
 
 def download() -> None:
