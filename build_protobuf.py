@@ -46,7 +46,7 @@ def build() -> None:
         if sys.platform != "win32":
             subprocess.run(["./configure"])
             subprocess.run(["make"])
-            subprocess.run(["make", "install"])
+            subprocess.run(["make", "install", "-fPIC"])
         else:
             subprocess.run(["git", "clone", "https://github.com/microsoft/vcpkg", "--depth=1"])
             subprocess.run([r".\vcpkg\bootstrap-vcpkg.bat"])
