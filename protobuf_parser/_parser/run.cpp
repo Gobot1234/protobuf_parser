@@ -66,21 +66,22 @@ auto run(const std::vector<std::string>& protobuf_paths, const std::vector<std::
 
     compiler::Importer importer(source_tree.get(), error_collector.get());
     std::vector<const google::protobuf::FileDescriptor*> parsed_files;
-    bool errored_early;
+    // bool errored_early;
 
     for (auto& protobuf_path : protobuf_paths) {
         auto parsed_file = importer.Import(protobuf_path);
         if (parsed_file == nullptr) {
             auto filename = protobuf_path.substr(protobuf_path.find_last_of("/\\") + 1);
             files_out.emplace_back(filename, "");
-            errored_early = true;
+            return py::make_tuple(files_out, error_collector.get()->errors);
+            // errored_early = true;
         }
         parsed_files.push_back(parsed_file);
     }
 
-    if (errored_early) {
-        return py::make_tuple(files_out, error_collector.get()->errors);
-    }
+    // if (errored_early) {
+    //     return py::make_tuple(files_out, error_collector.get()->errors);
+    // }
 
     std::vector<const google::protobuf::FileDescriptor*> transitive_closure;
     std::unordered_set<const google::protobuf::FileDescriptor*> visited;
