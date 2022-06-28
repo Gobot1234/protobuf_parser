@@ -42,7 +42,7 @@ def build() -> None:
         if Path("src/.libs").exists():  # no point rebuilding
             return
 
-        subprocess.run(["git", "submodule", "update", "--init", "--recursive"])
+        subprocess.run(["git", "submodule", "update", "--init", "--recursive", "--depth=1"])
         subprocess.run(["./autogen.sh"])
 
         if sys.platform != "win32":

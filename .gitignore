@@ -18,6 +18,8 @@ wheels/
 *.egg-info/
 *.egg
 poetry.lock
+.venv/
+venv/
 
 .idea
 .DS_Store
@@ -30,6 +32,6 @@ docs/_build/
 # mypy
 .mypy_cache/
 
-include
-.vscode
-protobuf
+include/
+.vscode/
+protobuf/
