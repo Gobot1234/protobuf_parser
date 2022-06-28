@@ -6,10 +6,9 @@ from collections.abc import Generator
 from contextlib import contextmanager
 from io import BytesIO
 from pathlib import Path
-
 from urllib.request import urlopen
 
-VERSION = "3.20.0"
+VERSION = "21.2"
 
 
 def download() -> None:
@@ -19,7 +18,7 @@ def download() -> None:
 
     # get most recent tag
     r = urlopen(
-        f"https://github.com/protocolbuffers/protobuf/releases/download/v{VERSION}/protobuf-cpp-{VERSION}.tar.gz"
+        f"https://github.com/protocolbuffers/protobuf/archive/refs/tags/v{VERSION}.tar.gz"
     )
     with tarfile.open(fileobj=BytesIO(r.read())) as file:
         file.extractall()
@@ -42,6 +41,9 @@ def build() -> None:
     with cd("protobuf"):
         if Path("src/.libs").exists():  # no point rebuilding
             return
+
+        subprocess.run(["git", "submodule", "update", "--init", "--recursive"])
+        subprocess.run(["./autogen.sh"])
 
         if sys.platform != "win32":
             subprocess.run(["./configure"])

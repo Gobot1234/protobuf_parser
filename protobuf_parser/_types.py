@@ -5,7 +5,7 @@ from __future__ import annotations
 import sys
 from io import TextIOWrapper
 from os import PathLike
-from typing import Protocol, runtime_checkable, Union
+from typing import Protocol, Union, runtime_checkable
 
 
 @runtime_checkable
