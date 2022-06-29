@@ -124,7 +124,7 @@ def run(*filenames: RunableFileT) -> Sequence[RunResult[RunableFileT]]:
 
     paths = [Path(file).resolve(strict=True) for file in filenames]
     include = paths[0].parent
-    assert all((path.parent == include for path in paths))
+    assert all(path.parent == include for path in paths)
 
     files, errors = _run([str(path.relative_to(include)) for path in paths], [str(include)])
 
@@ -148,9 +148,9 @@ def protoc(*args: Any, **kwargs: Any) -> Sequence[Error]:
 
     Parameters
     ----------
-    *args: `str`
+    *args
         Any arguments to pass to protoc.
-    **kwargs: `str`
+    **kwargs
         Any keyword arguments to pass to protoc.
 
     Example
@@ -163,7 +163,6 @@ def protoc(*args: Any, **kwargs: Any) -> Sequence[Error]:
 
     Returns
     -------
-    list[`Error`]
-        The errors that were encountered when invoking protoc.
+    The errors that were encountered when invoking protoc.
     """
     raise NotImplementedError()
