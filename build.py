@@ -31,10 +31,8 @@ except (FileNotFoundError, shutil.Error):  # shouldn't happen in normal code how
 
 COMPILE_ARGS: list[str] = []
 
-if sys.platform == "darwin":
+if sys.platform != "win32":
     COMPILE_ARGS.append("-std=c++14")
-elif sys.platform != "win32":
-    COMPILE_ARGS.extend(("-std=c++14", "-fPIC"))
 
 command = build_ext(Distribution())
 command.finalize_options()

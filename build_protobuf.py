@@ -46,11 +46,14 @@ def build() -> None:
             subprocess.run(["./autogen.sh"])
             subprocess.run(["./configure"])
             subprocess.run(["make"])
-            subprocess.run(["make", "install"])
+            make_install = ["make", "install"]
+            if sys.platform != "darwin":
+                make_install.append("-fPIC")
+            subprocess.run(make_install)
         else:
             subprocess.run(["git", "clone", "https://github.com/microsoft/vcpkg", "--depth=1"])
             subprocess.run([r".\vcpkg\bootstrap-vcpkg.bat"])
-            subprocess.run([r".\vcpkg\vcpkg", "install", "protobuf", "protobuf:x64-windows"])
+            subprocess.run([r".\vcpkg\vcpkg", "install", "protobuf", "protobuf:x64-windows", "--disable-metrics"])
 
 
 def main() -> int:
