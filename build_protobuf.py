@@ -44,8 +44,6 @@ def build() -> None:
         subprocess.run(["./autogen.sh"])
 
         if sys.platform != "win32":
-            print(os.listdir())
-            subprocess.run(["./configure"])
             subprocess.run(["make"])
             subprocess.run(["make", "install"])
         else:
