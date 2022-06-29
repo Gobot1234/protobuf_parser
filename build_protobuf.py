@@ -41,9 +41,10 @@ def build() -> None:
             return
 
         subprocess.run(["git", "submodule", "update", "--init", "--recursive", "--depth=1"])
-        subprocess.run(["./autogen.sh"])
 
         if sys.platform != "win32":
+            subprocess.run(["./autogen.sh"])
+            subprocess.run(["./configure"])
             subprocess.run(["make"])
             subprocess.run(["make", "install"])
         else:
