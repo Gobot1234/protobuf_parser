@@ -17,9 +17,7 @@ def download() -> None:
         return
 
     # get most recent tag
-    r = urlopen(
-        f"https://github.com/protocolbuffers/protobuf/archive/refs/tags/v{VERSION}.tar.gz"
-    )
+    r = urlopen(f"https://github.com/protocolbuffers/protobuf/archive/refs/tags/v{VERSION}.tar.gz")
     with tarfile.open(fileobj=BytesIO(r.read())) as file:
         file.extractall()
 
@@ -46,6 +44,7 @@ def build() -> None:
         subprocess.run(["./autogen.sh"])
 
         if sys.platform != "win32":
+            print(os.listdir())
             subprocess.run(["./configure"])
             subprocess.run(["make"])
             subprocess.run(["make", "install"])
