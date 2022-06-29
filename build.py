@@ -29,6 +29,13 @@ try:
 except (FileNotFoundError, shutil.Error):  # shouldn't happen in normal code however may happen during development
     pass
 
+COMPILE_ARGS: list[str] = []
+
+if sys.platform == "darwin":
+    COMPILE_ARGS.append("-std=c++14")
+elif sys.platform != "win32":
+    COMPILE_ARGS.extend(("-std=c++14", "-fPIC"))
+
 command = build_ext(Distribution())
 command.finalize_options()
 command.build_lib = str(ROOT)
@@ -38,7 +45,7 @@ parser = Pybind11Extension(
     libraries=["protobuf"],
     library_dirs=[str(LIBS)],
     extra_objects=[str(LIBS / "libprotobuf.a"), str(LIBS / "libprotoc.a")],
-    extra_compile_args=["-std=c++14"],
+    extra_compile_args=COMPILE_ARGS,
 )
 parser._needs_stub = False  # type: ignore
 command.extensions = [parser]
