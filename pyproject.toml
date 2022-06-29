@@ -25,9 +25,12 @@ betterproto = {version = "2.0.0b4", extras = ["compiler"]}
 setuptools = "^60.9.1"
 tomli = "^1.2.2"
 
-[tool.poe.tasks.build_protobuf]
-help = "Build the protobuf directory"
-script = "build_protobuf:main"
+[tool.poe.tasks]
+_black = "black ."
+_isort = "isort ."
+fmt = {sequence = ["_black", "_isort"], help = "Format the code"}
+doc = {cmd = "sphinx-build -b html -T -W -n --keep-going docs/ docs/_build", help = "Build the documentation"}
+build_protobuf = {script = "build_protobuf:main", help = "Build the protobuf directory"}
 
 [tool.poe.poetry_hooks]
 pre_install = "build_protobuf"
